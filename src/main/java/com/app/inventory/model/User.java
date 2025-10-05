@@ -2,9 +2,15 @@ package com.app.inventory.model;
 
 import com.app.inventory.enums.Role;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Table(name = "users",
         uniqueConstraints = {

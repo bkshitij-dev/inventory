@@ -1,6 +1,6 @@
 package com.app.inventory.service.impl;
 
-import com.app.inventory.dto.request.RegisterRequestDto;
+import com.app.inventory.dto.request.RegisterRequest;
 import com.app.inventory.enums.Role;
 import com.app.inventory.model.User;
 import com.app.inventory.repository.UserRepository;
@@ -8,6 +8,8 @@ import com.app.inventory.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +19,10 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
 
     @Override
-    public void create(RegisterRequestDto request) {
+    public void register(RegisterRequest request) throws Exception {
+        if (findByUsernameOrEmail(request.getUsername(), request.getEmail()).isPresent()) {
+            throw new Exception("Username and/or email already exists");
+        }
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -25,5 +30,10 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.STAFF)
                 .build();
         userRepository.save(user);
+    }
+
+    @Override
+    public Optional<User> findByUsernameOrEmail(String username, String email) {
+        return userRepository.findByUsernameOrEmail(username, email);
     }
 }
