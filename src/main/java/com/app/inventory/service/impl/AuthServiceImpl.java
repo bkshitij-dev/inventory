@@ -1,25 +1,27 @@
 package com.app.inventory.service.impl;
 
-import com.app.inventory.dto.request.UserRequestDto;
+import com.app.inventory.dto.request.RegisterRequestDto;
 import com.app.inventory.enums.Role;
 import com.app.inventory.model.User;
 import com.app.inventory.repository.UserRepository;
-import com.app.inventory.service.UserService;
+import com.app.inventory.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class AuthServiceImpl implements AuthService {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Override
-    public void create(UserRequestDto request) {
+    public void create(RegisterRequestDto request) {
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.STAFF)
                 .build();
         userRepository.save(user);

@@ -1,7 +1,7 @@
 package com.app.inventory.controller;
 
-import com.app.inventory.dto.request.UserRequestDto;
-import com.app.inventory.service.UserService;
+import com.app.inventory.dto.request.RegisterRequestDto;
+import com.app.inventory.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class UserController {
+public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
 
-    @PostMapping
-    ResponseEntity<?> create(@Valid @RequestBody UserRequestDto request) {
-        userService.create(request);
+    @PostMapping("/register")
+    ResponseEntity<?> create(@Valid @RequestBody RegisterRequestDto request) {
+        authService.create(request);
         return ResponseEntity.ok("Created");
     }
 }

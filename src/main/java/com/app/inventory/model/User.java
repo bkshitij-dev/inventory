@@ -3,10 +3,6 @@ package com.app.inventory.model;
 import com.app.inventory.enums.Role;
 import jakarta.persistence.*;
 import lombok.Builder;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Builder
