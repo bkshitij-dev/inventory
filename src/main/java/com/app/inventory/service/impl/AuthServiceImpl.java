@@ -5,6 +5,8 @@ import com.app.inventory.enums.Role;
 import com.app.inventory.model.User;
 import com.app.inventory.repository.UserRepository;
 import com.app.inventory.service.AuthService;
+import com.app.inventory.service.EmailService;
+import com.app.inventory.service.VerificationTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final VerificationTokenService verificationTokenService;
 
     @Override
     public void register(RegisterRequest request) throws Exception {
@@ -30,10 +34,20 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ADMIN)
                 .build();
         userRepository.save(user);
+        emailService.sendAccountActivationEmail(user);
+
     }
 
     @Override
     public Optional<User> findByUsernameOrEmail(String username, String email) {
         return userRepository.findByUsernameOrEmail(username, email);
+    }
+
+    @Override
+    public void verify(String token) throws Exception {
+        User user = verificationTokenService.validateAndGetUser(token);
+        user.setActive(true);
+        userRepository.save(user);
+        verificationTokenService.invalidate(token);
     }
 }

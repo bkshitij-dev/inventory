@@ -4,6 +4,17 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password:
+  mail:
+    host: smtp.mailersend.net
+    port: 587
+    username: MS_omF4aG@test-r9084zv9m08gw63d.mlsender.net
+    password: mssp.jgZSxBi.ynrw7gyp08kg2k8e.Y4dpNYe
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   jpa:
     hibernate:
@@ -16,3 +27,7 @@ spring:
 jwt:
   secret: YQ7N3TpCRs+BEO2Zd5GxH/yVvjDA7wdFZj4eEzDI5iQ=
   expiration: 3600000 # 1 hour
+
+app:
+  verification:
+    uri: http://localhost:3000/verify?token=

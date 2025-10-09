@@ -12,10 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -28,7 +25,7 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/register")
-    ResponseEntity<?> create(@Valid @RequestBody RegisterRequest request) {
+    ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
             authService.register(request);
             return ResponseEntity.ok("User registered successfully");
@@ -50,5 +47,15 @@ public class AuthController {
         String jwtToken = jwtService.generateToken(userDetails);
 
         return ResponseEntity.ok(new AuthResponse(jwtToken));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verify(@RequestParam("token") String token) {
+        try {
+            authService.verify(token);
+            return ResponseEntity.ok("User account activated successfully");
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(ex.getLocalizedMessage());
+        }
     }
 }

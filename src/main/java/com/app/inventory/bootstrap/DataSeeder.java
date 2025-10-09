@@ -31,6 +31,7 @@ public class DataSeeder implements CommandLineRunner {
                 .email("system@app.com")
                 .password(passwordEncoder.encode("System@123"))
                 .role(Role.SYSTEM)
+                .active(true)
                 .build();
         systemUser.setCreatedBy(systemUser);
         systemUser.setLastModifiedBy(systemUser);
