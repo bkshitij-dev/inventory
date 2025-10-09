@@ -1,8 +1,6 @@
 package com.app.inventory.service.impl;
 
-import com.app.inventory.model.User;
 import com.app.inventory.service.EmailService;
-import com.app.inventory.service.VerificationTokenService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +18,6 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final VerificationTokenService verificationTokenService;
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
@@ -31,9 +28,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void sendAccountActivationEmail(User user) {
-        String token = verificationTokenService.create(user);
-        sendEmail(user.getEmail(), "Account Created", verificationUri + token);
+    public void sendAccountActivationEmail(String email, String token) {
+        sendEmail(email, "Account Created", verificationUri + token);
     }
 
     private void sendEmail(String to, String subject, String verificationLink) {

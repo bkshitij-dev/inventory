@@ -6,6 +6,7 @@ import com.app.inventory.dto.request.RegisterRequest;
 import com.app.inventory.security.AppUserDetailsService;
 import com.app.inventory.security.JwtService;
 import com.app.inventory.service.AuthService;
+import com.app.inventory.service.VerificationTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     private final JwtService jwtService;
+    private final VerificationTokenService verificationTokenService;
 
     @PostMapping("/register")
     ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
@@ -54,6 +56,16 @@ public class AuthController {
         try {
             authService.verify(token);
             return ResponseEntity.ok("User account activated successfully");
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(ex.getLocalizedMessage());
+        }
+    }
+
+    @GetMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@RequestParam("token") String token) {
+        try {
+            verificationTokenService.invalidateAndCreateNewToken(token);
+            return ResponseEntity.ok("Account verification email sent");
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body(ex.getLocalizedMessage());
         }

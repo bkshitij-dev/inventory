@@ -5,7 +5,6 @@ import com.app.inventory.enums.Role;
 import com.app.inventory.model.User;
 import com.app.inventory.repository.UserRepository;
 import com.app.inventory.service.AuthService;
-import com.app.inventory.service.EmailService;
 import com.app.inventory.service.VerificationTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +18,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final EmailService emailService;
     private final VerificationTokenService verificationTokenService;
 
     @Override
@@ -34,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ADMIN)
                 .build();
         userRepository.save(user);
-        emailService.sendAccountActivationEmail(user);
+        verificationTokenService.createTokenAndSendEmail(user);
 
     }
 
@@ -50,4 +48,5 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         verificationTokenService.invalidate(token);
     }
+
 }

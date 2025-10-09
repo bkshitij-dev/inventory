@@ -4,6 +4,6 @@ import com.app.inventory.model.User;
 
 public interface EmailService {
 
-    void sendAccountActivationEmail(User user);
+    void sendAccountActivationEmail(String email, String token);
 
 }
