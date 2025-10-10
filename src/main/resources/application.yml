@@ -5,10 +5,10 @@ spring:
     username: sa
     password:
   mail:
-    host: smtp.mailersend.net
-    port: 587
-    username: MS_omF4aG@test-r9084zv9m08gw63d.mlsender.net
-    password: mssp.jgZSxBi.ynrw7gyp08kg2k8e.Y4dpNYe
+    host: ${SPRING_MAIL_HOST}
+    port: ${SPRING_MAIL_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -25,7 +25,7 @@ spring:
       path: /h2-console
 
 jwt:
-  secret: YQ7N3TpCRs+BEO2Zd5GxH/yVvjDA7wdFZj4eEzDI5iQ=
+  secret: ${JWT_SECRET}
   expiration: 3600000 # 1 hour
 
 app:
