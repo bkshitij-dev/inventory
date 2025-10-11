@@ -6,6 +6,7 @@ import com.app.inventory.model.User;
 import com.app.inventory.repository.UserRepository;
 import com.app.inventory.service.AuthService;
 import com.app.inventory.service.VerificationTokenService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Optional<User> findByUsernameOrEmail(String username, String email) {
         return userRepository.findByUsernameOrEmail(username, email);
+    }
+
+    @Override
+    public User getByEmail(String email) {
+        return findByUsernameOrEmail(email, email)
+                .orElseThrow(() -> new EntityNotFoundException("User doesn't exist"));
     }
 
     @Override

@@ -55,13 +55,17 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     }
 
     @Override
-    public void invalidateAndCreateNewToken(String token) throws Exception {
-        VerificationToken verificationToken = findByToken(token);
-        User user = verificationToken.getUser();
+    public void invalidateAndCreateNewToken(User user) throws Exception {
         if (user.isActive()) {
             throw new Exception("User already verified");
         }
-        createTokenAndSendEmail(verificationToken.getUser());
+        createTokenAndSendEmail(user);
+    }
+
+    @Override
+    public void invalidateAndCreateNewToken(String token) throws Exception {
+        VerificationToken verificationToken = findByToken(token);
+        invalidateAndCreateNewToken(verificationToken.getUser());
     }
 
     private VerificationToken findActiveToken(String token) {

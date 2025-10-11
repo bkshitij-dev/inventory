@@ -11,6 +11,8 @@ public interface AuthService {
 
     Optional<User> findByUsernameOrEmail(String username, String email);
 
+    User getByEmail(String email);
+
     void verify(String token) throws Exception;
 
 }

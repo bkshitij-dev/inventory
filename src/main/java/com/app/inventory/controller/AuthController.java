@@ -3,6 +3,7 @@ package com.app.inventory.controller;
 import com.app.inventory.dto.request.AuthResponse;
 import com.app.inventory.dto.request.LoginRequest;
 import com.app.inventory.dto.request.RegisterRequest;
+import com.app.inventory.model.User;
 import com.app.inventory.security.AppUserDetailsService;
 import com.app.inventory.security.JwtService;
 import com.app.inventory.service.AuthService;
@@ -14,6 +15,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -62,9 +65,18 @@ public class AuthController {
     }
 
     @GetMapping("/resend-verification")
-    public ResponseEntity<?> resendVerification(@RequestParam("token") String token) {
+    public ResponseEntity<?> resendVerification(@RequestParam(value = "email", required = false) String email,
+                                                @RequestParam(value = "token", required = false) String token) {
         try {
-            verificationTokenService.invalidateAndCreateNewToken(token);
+            if (Objects.isNull(email) && Objects.isNull(token)) {
+                throw new Exception("Invalid Verification Link");
+            }
+            if (Objects.nonNull(email)) {
+                User user = authService.getByEmail(email);
+                verificationTokenService.invalidateAndCreateNewToken(user);
+            } else {
+                verificationTokenService.invalidateAndCreateNewToken(token);
+            }
             return ResponseEntity.ok("Account verification email sent");
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body(ex.getLocalizedMessage());

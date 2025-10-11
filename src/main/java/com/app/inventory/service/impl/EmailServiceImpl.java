@@ -3,6 +3,7 @@ package com.app.inventory.service.impl;
 import com.app.inventory.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -16,6 +17,7 @@ import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
@@ -48,9 +50,9 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            System.out.println("Verification email sent to: " + to);
+            log.info("Verification email sent to {}", to);
         } catch (Exception e) {
-            System.err.println("Failed to send email: " + e.getMessage());
+            log.error("Failed to send verification email to {}. Reason: {}", to, e.getMessage(), e);
         }
     }
 }

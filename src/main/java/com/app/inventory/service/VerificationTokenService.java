@@ -10,6 +10,8 @@ public interface VerificationTokenService {
 
     void invalidate(String token);
 
+    void invalidateAndCreateNewToken(User user) throws Exception;
+
     void invalidateAndCreateNewToken(String token) throws Exception;
 
 }
