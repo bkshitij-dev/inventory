@@ -29,7 +29,10 @@ public class SecurityConfig {
 
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/**",
-            "/h2-console/**"
+            "/h2-console/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
     };
 
     @Bean
