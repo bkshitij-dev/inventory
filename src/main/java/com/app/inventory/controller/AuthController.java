@@ -1,8 +1,10 @@
 package com.app.inventory.controller;
 
-import com.app.inventory.dto.request.AuthResponse;
+import com.app.inventory.dto.response.ApiResponse;
+import com.app.inventory.dto.response.AuthResponse;
 import com.app.inventory.dto.request.LoginRequest;
 import com.app.inventory.dto.request.RegisterRequest;
+import com.app.inventory.exception.InvalidTokenException;
 import com.app.inventory.model.User;
 import com.app.inventory.security.AppUserDetailsService;
 import com.app.inventory.security.JwtService;
@@ -30,17 +32,13 @@ public class AuthController {
     private final VerificationTokenService verificationTokenService;
 
     @PostMapping("/register")
-    ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            authService.register(request);
-            return ResponseEntity.ok("User registered successfully");
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getLocalizedMessage());
-        }
+    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {
+        authService.register(request);
+        return ResponseEntity.ok(ApiResponse.success("User registered successfully"));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.usernameOrEmail(),
@@ -51,35 +49,29 @@ public class AuthController {
         UserDetails userDetails = appUserDetailsService.loadUserByUsername(request.usernameOrEmail());
         String jwtToken = jwtService.generateToken(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(jwtToken));
+        return ResponseEntity.ok(ApiResponse.success("User logged in successfully",
+                new AuthResponse(jwtToken)));
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<?> verify(@RequestParam("token") String token) {
-        try {
-            authService.verify(token);
-            return ResponseEntity.ok("User account activated successfully");
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getLocalizedMessage());
-        }
+    public ResponseEntity<ApiResponse<Void>> verify(@RequestParam("token") String token) {
+        authService.verify(token);
+        return ResponseEntity.ok(ApiResponse.success("User account activated successfully"));
     }
 
     @GetMapping("/resend-verification")
-    public ResponseEntity<?> resendVerification(@RequestParam(value = "email", required = false) String email,
-                                                @RequestParam(value = "token", required = false) String token) {
-        try {
-            if (Objects.isNull(email) && Objects.isNull(token)) {
-                throw new Exception("Invalid Verification Link");
-            }
-            if (Objects.nonNull(email)) {
-                User user = authService.getByEmail(email);
-                verificationTokenService.invalidateAndCreateNewToken(user);
-            } else {
-                verificationTokenService.invalidateAndCreateNewToken(token);
-            }
-            return ResponseEntity.ok("Account verification email sent");
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getLocalizedMessage());
+    public ResponseEntity<ApiResponse<Void>> resendVerification(
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "token", required = false) String token) {
+        if (Objects.isNull(email) && Objects.isNull(token)) {
+            throw new InvalidTokenException("Invalid Verification Link");
         }
+        if (Objects.nonNull(email)) {
+            User user = authService.getByEmail(email);
+            verificationTokenService.invalidateAndCreateNewToken(user);
+        } else {
+            verificationTokenService.invalidateAndCreateNewToken(token);
+        }
+        return ResponseEntity.ok(ApiResponse.success("Account verification email sent"));
     }
 }

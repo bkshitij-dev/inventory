@@ -1,11 +1,13 @@
 package com.app.inventory.service.impl;
 
+import com.app.inventory.exception.ResourceNotFoundException;
+import com.app.inventory.exception.UserAlreadyValidatedException;
+import com.app.inventory.exception.VerificationTokenExpiredException;
 import com.app.inventory.model.User;
 import com.app.inventory.model.VerificationToken;
 import com.app.inventory.repository.VerificationTokenRepository;
 import com.app.inventory.service.EmailService;
 import com.app.inventory.service.VerificationTokenService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -35,14 +37,14 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     }
 
     @Override
-    public User validateAndGetUser(String token) throws Exception {
+    public User validateAndGetUser(String token) {
         VerificationToken verificationToken = findByToken(token);
         User user = verificationToken.getUser();
         if (user.isActive()) {
-            throw new Exception("User account has already been activated");
+            throw new UserAlreadyValidatedException("User account has already been activated");
         }
         if (verificationToken.isExpired()) {
-            throw new Exception("Token has expired");
+            throw new VerificationTokenExpiredException("Token has expired");
         }
         return user;
     }
@@ -55,27 +57,27 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     }
 
     @Override
-    public void invalidateAndCreateNewToken(User user) throws Exception {
+    public void invalidateAndCreateNewToken(User user) {
         if (user.isActive()) {
-            throw new Exception("User already verified");
+            throw new UserAlreadyValidatedException("User account has already been activated");
         }
         createTokenAndSendEmail(user);
     }
 
     @Override
-    public void invalidateAndCreateNewToken(String token) throws Exception {
+    public void invalidateAndCreateNewToken(String token) {
         VerificationToken verificationToken = findByToken(token);
         invalidateAndCreateNewToken(verificationToken.getUser());
     }
 
     private VerificationToken findActiveToken(String token) {
         return verificationTokenRepository.findActiveToken(token)
-                .orElseThrow(() -> new EntityNotFoundException("Token is invalid"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token is invalid"));
     }
 
     private VerificationToken findByToken(String token) {
         return verificationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new EntityNotFoundException("Token is invalid"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token is invalid"));
     }
 
     private void invalidateIfExists(User user) {
