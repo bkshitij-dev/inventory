@@ -31,3 +31,5 @@ jwt:
 app:
   verification:
     uri: http://localhost:3000/verify?token=
+  passwordReset:
+    uri: http://localhost:3000/reset-password?token=

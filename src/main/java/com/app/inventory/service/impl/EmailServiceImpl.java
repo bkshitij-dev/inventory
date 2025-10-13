@@ -1,5 +1,6 @@
 package com.app.inventory.service.impl;
 
+import com.app.inventory.enums.TokenType;
 import com.app.inventory.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +29,30 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.verification.uri}")
     private String verificationUri;
 
+    @Value("${app.passwordReset.uri}")
+    private String resetPasswordUri;
+
     @Override
     @Async
-    public void sendAccountActivationEmail(String email, String token) {
-        sendEmail(email, "Account Created", verificationUri + token);
+    public void sendEmail(String email, String token, TokenType tokenType) {
+        switch (tokenType) {
+            case ACCOUNT_VERIFICATION -> sendAccountActivationEmail(email, token);
+            case PASSWORD_RESET -> sendResetPasswordEmail(email, token);
+            default -> {
+                log.error("Invalid token type");
+            }
+        };
     }
 
-    private void sendEmail(String to, String subject, String verificationLink) {
+    private void sendAccountActivationEmail(String email, String token) {
+        send(email, "Account Created", verificationUri + token, "verify.html");
+    }
+
+    private void sendResetPasswordEmail(String email, String token) {
+        send(email, "Reset Password", resetPasswordUri + token, "password-reset.html");
+    }
+
+    private void send(String to, String subject, String link, String templateName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -44,15 +62,15 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            ClassPathResource resource = new ClassPathResource("templates/verify.html");
+            ClassPathResource resource = new ClassPathResource("templates/" + templateName);
             String htmlContent = Files.readString(Path.of(resource.getURI()));
-            htmlContent = htmlContent.replace("{{verificationLink}}", verificationLink);
+            htmlContent = htmlContent.replace("{{link}}", link);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("Verification email sent to {}", to);
+            log.info("Email sent to {}", to);
         } catch (Exception e) {
-            log.error("Failed to send verification email to {}. Reason: {}", to, e.getMessage(), e);
+            log.error("Failed to send email to {}. Reason: {}", to, e.getMessage(), e);
         }
     }
 }

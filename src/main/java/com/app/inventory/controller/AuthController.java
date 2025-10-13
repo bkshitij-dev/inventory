@@ -1,15 +1,15 @@
 package com.app.inventory.controller;
 
+import com.app.inventory.dto.request.*;
 import com.app.inventory.dto.response.ApiResponse;
 import com.app.inventory.dto.response.AuthResponse;
-import com.app.inventory.dto.request.LoginRequest;
-import com.app.inventory.dto.request.RegisterRequest;
+import com.app.inventory.enums.TokenType;
 import com.app.inventory.exception.InvalidTokenException;
 import com.app.inventory.model.User;
 import com.app.inventory.security.AppUserDetailsService;
 import com.app.inventory.security.JwtService;
 import com.app.inventory.service.AuthService;
-import com.app.inventory.service.VerificationTokenService;
+import com.app.inventory.service.ExternalAccessTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,7 +32,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     private final JwtService jwtService;
-    private final VerificationTokenService verificationTokenService;
+    private final ExternalAccessTokenService externalAccessTokenService;
 
     @PostMapping("/register")
     @Operation(summary = "User registration", description = "Register as admin in the application")
@@ -58,28 +58,40 @@ public class AuthController {
                 new AuthResponse(jwtToken)));
     }
 
-    @GetMapping("/verify")
+    @PostMapping("/verify")
     @Operation(summary = "User verification", description = "Use the token to activate the user")
-    public ResponseEntity<ApiResponse<Void>> verify(@RequestParam("token") String token) {
-        authService.verify(token);
+    public ResponseEntity<ApiResponse<Void>> verify(@Valid @RequestBody TokenRequest request) {
+        authService.verify(request.getToken());
         return ResponseEntity.ok(ApiResponse.success("User account activated successfully"));
     }
 
-    @GetMapping("/resend-verification")
+    @PostMapping("/resend-verification")
     @Operation(summary = "Resend Verification",
             description = "Resend verification email in case of token expiry or lost token")
-    public ResponseEntity<ApiResponse<Void>> resendVerification(
-            @RequestParam(value = "email", required = false) String email,
-            @RequestParam(value = "token", required = false) String token) {
-        if (Objects.isNull(email) && Objects.isNull(token)) {
+    public ResponseEntity<ApiResponse<Void>> resendVerification(@RequestBody ResendVerificationRequest request) {
+        if (Objects.isNull(request.getEmail()) && Objects.isNull(request.getToken())) {
             throw new InvalidTokenException("Invalid Verification Link");
         }
-        if (Objects.nonNull(email)) {
-            User user = authService.getByEmail(email);
-            verificationTokenService.invalidateAndCreateNewToken(user);
+        if (Objects.nonNull(request.getEmail())) {
+            User user = authService.getByEmail(request.getEmail());
+            externalAccessTokenService.invalidateAndCreateNewToken(user, TokenType.ACCOUNT_VERIFICATION);
         } else {
-            verificationTokenService.invalidateAndCreateNewToken(token);
+            externalAccessTokenService.invalidateAndCreateNewToken(request.getToken(), TokenType.ACCOUNT_VERIFICATION);
         }
         return ResponseEntity.ok(ApiResponse.success("Account verification email sent"));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot Password", description = "Send email to reset password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody EmailRequest request) {
+        authService.requestResetPassword(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("Reset password email sent successfully"));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset Password", description = "Update password after requesting for forgotten password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success("Password reset successfully"));
     }
 }

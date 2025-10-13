@@ -1,13 +1,15 @@
 package com.app.inventory.service.impl;
 
+import com.app.inventory.dto.request.PasswordResetRequest;
 import com.app.inventory.dto.request.RegisterRequest;
 import com.app.inventory.enums.Role;
+import com.app.inventory.enums.TokenType;
 import com.app.inventory.exception.ResourceNotFoundException;
 import com.app.inventory.exception.UserAlreadyExistsException;
 import com.app.inventory.model.User;
 import com.app.inventory.repository.UserRepository;
 import com.app.inventory.service.AuthService;
-import com.app.inventory.service.VerificationTokenService;
+import com.app.inventory.service.ExternalAccessTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final VerificationTokenService verificationTokenService;
+    private final ExternalAccessTokenService externalAccessTokenService;
 
     @Override
     public void register(RegisterRequest request) {
@@ -34,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ADMIN)
                 .build();
         userRepository.save(user);
-        verificationTokenService.createTokenAndSendEmail(user);
+        externalAccessTokenService.createTokenAndSendEmail(user, TokenType.ACCOUNT_VERIFICATION);
     }
 
     @Override
@@ -50,10 +52,22 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void verify(String token) {
-        User user = verificationTokenService.validateAndGetUser(token);
+        User user = externalAccessTokenService.validateAndGetUser(token);
         user.setActive(true);
         userRepository.save(user);
-        verificationTokenService.invalidate(token);
+        externalAccessTokenService.invalidate(token);
     }
 
+    @Override
+    public void requestResetPassword(String email) {
+        User user = getByEmail(email);
+        externalAccessTokenService.createTokenAndSendEmail(user, TokenType.PASSWORD_RESET);
+    }
+
+    @Override
+    public void resetPassword(PasswordResetRequest request) {
+        User user = getByEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+    }
 }
