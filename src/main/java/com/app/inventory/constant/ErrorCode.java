@@ -2,6 +2,7 @@ package com.app.inventory.constant;
 
 public class ErrorCode {
 
+    public static final String BAD_CREDENTIALS = "BAD_CREDENTIALS";
     public static final String USER_ALREADY_EXISTS = "USER_ALREADY_EXISTS";
     public static final String USER_ALREADY_VALIDATED = "USER_ALREADY_VALIDATED";
     public static final String INVALID_TOKEN = "INVALID_TOKEN";

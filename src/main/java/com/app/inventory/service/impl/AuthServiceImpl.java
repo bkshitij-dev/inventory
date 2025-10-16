@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
     public User getByEmail(String email) {
         return findByUsernameOrEmail(email, email)
                 .orElseThrow(() -> new ResourceNotFoundException(customMessageSource.getMessage(
-                        MessageConstants.AUTH_USER_EMAIL_NOT_EXISTS, new Object[] {email})));
+                        MessageConstants.AUTH_USER_NOT_EXISTS, new Object[] {email})));
     }
 
     @Override
