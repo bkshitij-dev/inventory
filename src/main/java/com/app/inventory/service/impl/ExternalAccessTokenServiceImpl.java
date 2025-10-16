@@ -1,5 +1,6 @@
 package com.app.inventory.service.impl;
 
+import com.app.inventory.constant.MessageConstants;
 import com.app.inventory.enums.TokenType;
 import com.app.inventory.exception.ResourceNotFoundException;
 import com.app.inventory.exception.UserAlreadyValidatedException;
@@ -7,6 +8,7 @@ import com.app.inventory.exception.VerificationTokenExpiredException;
 import com.app.inventory.model.User;
 import com.app.inventory.model.ExternalAccessToken;
 import com.app.inventory.repository.ExternalAccessTokenRepository;
+import com.app.inventory.service.CustomMessageSource;
 import com.app.inventory.service.EmailService;
 import com.app.inventory.service.ExternalAccessTokenService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
 
     private final EmailService emailService;
     private final ExternalAccessTokenRepository externalAccessTokenRepository;
+    private final CustomMessageSource customMessageSource;
 
     @Override
     @Async
@@ -43,10 +46,12 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
         ExternalAccessToken externalAccessToken = findByToken(token);
         User user = externalAccessToken.getUser();
         if (user.isActive()) {
-            throw new UserAlreadyValidatedException("User account has already been activated");
+            throw new UserAlreadyValidatedException(customMessageSource.getMessage(
+                    MessageConstants.EAT_USER_ALREADY_ACTIVE));
         }
         if (externalAccessToken.isExpired()) {
-            throw new VerificationTokenExpiredException("Token has expired");
+            throw new VerificationTokenExpiredException(customMessageSource.getMessage(
+                    MessageConstants.EAT_TOKEN_EXPIRED));
         }
         return user;
     }
@@ -61,7 +66,8 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
     @Override
     public void invalidateAndCreateNewToken(User user, TokenType tokenType) {
         if (tokenType.equals(TokenType.ACCOUNT_VERIFICATION) && user.isActive()) {
-            throw new UserAlreadyValidatedException("User account has already been activated");
+            throw new UserAlreadyValidatedException(customMessageSource.getMessage(
+                    MessageConstants.EAT_USER_ALREADY_ACTIVE));
         }
         createTokenAndSendEmail(user, tokenType);
     }
@@ -74,12 +80,14 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
 
     private ExternalAccessToken findActiveToken(String token) {
         return externalAccessTokenRepository.findActiveToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException("Token is invalid"));
+                .orElseThrow(() -> new ResourceNotFoundException(customMessageSource.getMessage(
+                        MessageConstants.EAT_TOKEN_INVALID)));
     }
 
     private ExternalAccessToken findByToken(String token) {
         return externalAccessTokenRepository.findByToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException("Token is invalid"));
+                .orElseThrow(() -> new ResourceNotFoundException(customMessageSource.getMessage(
+                        MessageConstants.EAT_TOKEN_INVALID)));
     }
 
     private void invalidateIfExists(Long userId, TokenType tokenType) {

@@ -1,6 +1,8 @@
 package com.app.inventory.service.impl;
 
+import com.app.inventory.constant.MessageConstants;
 import com.app.inventory.enums.TokenType;
+import com.app.inventory.service.CustomMessageSource;
 import com.app.inventory.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.Date;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final CustomMessageSource customMessageSource;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -39,17 +42,19 @@ public class EmailServiceImpl implements EmailService {
             case ACCOUNT_VERIFICATION -> sendAccountActivationEmail(email, token);
             case PASSWORD_RESET -> sendResetPasswordEmail(email, token);
             default -> {
-                log.error("Invalid token type");
+                log.error(customMessageSource.getMessage(MessageConstants.EAT_TOKEN_TYPE_INVALID));
             }
         };
     }
 
     private void sendAccountActivationEmail(String email, String token) {
-        send(email, "Account Created", verificationUri + token, "verify.html");
+        send(email, customMessageSource.getMessage(MessageConstants.EMAIL_SUBJECT_ACCOUNT_CREATED),
+                verificationUri + token, "verify.html");
     }
 
     private void sendResetPasswordEmail(String email, String token) {
-        send(email, "Reset Password", resetPasswordUri + token, "password-reset.html");
+        send(email, customMessageSource.getMessage(MessageConstants.EMAIL_SUBJECT_RESET_PASSWORD),
+                resetPasswordUri + token, "password-reset.html");
     }
 
     private void send(String to, String subject, String link, String templateName) {
