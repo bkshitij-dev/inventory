@@ -65,7 +65,8 @@ public class AuthController {
     @Operation(summary = "User verification", description = "Use the token to activate the user")
     public ResponseEntity<ApiResponse<Void>> verify(@Valid @RequestBody TokenRequest request) {
         authService.verify(request.getToken());
-        return ResponseEntity.ok(ApiResponse.success("User account activated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(customMessageSource.getMessage(
+                MessageConstants.AUTH_USER_ACCOUNT_ACTIVATED)));
     }
 
     @PostMapping("/resend-verification")

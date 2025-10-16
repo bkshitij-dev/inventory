@@ -43,7 +43,7 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
 
     @Override
     public User validateAndGetUser(String token) {
-        ExternalAccessToken externalAccessToken = findByToken(token);
+        ExternalAccessToken externalAccessToken = findActiveToken(token);
         User user = externalAccessToken.getUser();
         if (user.isActive()) {
             throw new UserAlreadyValidatedException(customMessageSource.getMessage(
@@ -74,7 +74,7 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
 
     @Override
     public void invalidateAndCreateNewToken(String token, TokenType tokenType) {
-        ExternalAccessToken externalAccessToken = findByToken(token);
+        ExternalAccessToken externalAccessToken = findActiveToken(token);
         invalidateAndCreateNewToken(externalAccessToken.getUser(), tokenType);
     }
 
@@ -84,15 +84,9 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
                         MessageConstants.EAT_TOKEN_INVALID)));
     }
 
-    private ExternalAccessToken findByToken(String token) {
-        return externalAccessTokenRepository.findByToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException(customMessageSource.getMessage(
-                        MessageConstants.EAT_TOKEN_INVALID)));
-    }
-
     private void invalidateIfExists(Long userId, TokenType tokenType) {
         Optional<ExternalAccessToken> verificationTokenOpt = externalAccessTokenRepository.findByUserAndTokenType(
-                userId, tokenType);
+                userId, tokenType.name());
         if (verificationTokenOpt.isPresent()) {
             ExternalAccessToken externalAccessToken = verificationTokenOpt.get();
             externalAccessToken.setActive(false);
