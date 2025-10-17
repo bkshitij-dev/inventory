@@ -9,6 +9,8 @@ public interface ExternalAccessTokenService {
 
     User validateAndGetUser(String token);
 
+    User getUser(String token);
+
     void invalidate(String token);
 
     void invalidateAndCreateNewToken(User user, TokenType tokenType);

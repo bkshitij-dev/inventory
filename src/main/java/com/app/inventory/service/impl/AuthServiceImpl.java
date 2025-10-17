@@ -15,6 +15,7 @@ import com.app.inventory.service.ExternalAccessTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -55,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void verify(String token) {
         User user = externalAccessTokenService.validateAndGetUser(token);
         user.setActive(true);
@@ -69,9 +71,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(PasswordResetRequest request) {
-        User user = getByEmail(request.getEmail());
+        User user = externalAccessTokenService.getUser(request.getToken());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
+        externalAccessTokenService.invalidate(request.getToken());
     }
 }

@@ -6,8 +6,8 @@ import lombok.Getter;
 @Getter
 public class PasswordResetRequest {
 
-    @NotBlank(message = "Email must be provided")
-    private String email;
+    @NotBlank(message = "Token must be provided")
+    private String token;
 
     @NotBlank(message = "Password must be provided")
     private String password;

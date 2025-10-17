@@ -57,6 +57,17 @@ public class ExternalAccessTokenServiceImpl implements ExternalAccessTokenServic
     }
 
     @Override
+    public User getUser(String token) {
+        ExternalAccessToken externalAccessToken = findActiveToken(token);
+        User user = externalAccessToken.getUser();
+        if (externalAccessToken.isExpired()) {
+            throw new VerificationTokenExpiredException(customMessageSource.getMessage(
+                    MessageConstants.EAT_TOKEN_EXPIRED));
+        }
+        return user;
+    }
+
+    @Override
     public void invalidate(String token) {
         ExternalAccessToken externalAccessToken = findActiveToken(token);
         externalAccessToken.setActive(false);
